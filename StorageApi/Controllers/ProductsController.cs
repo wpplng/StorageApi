@@ -98,7 +98,7 @@ namespace StorageApi.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(CreateProductDto dto)
+        public async Task<ActionResult<ProductDto>> PostProduct(CreateProductDto dto)
         {
             var product = new Product
             {
