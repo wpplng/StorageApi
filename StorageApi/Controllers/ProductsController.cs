@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StorageApi.Data;
+using StorageApi.DTOs;
 using StorageApi.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace StorageApi.Controllers
 {
@@ -23,14 +24,22 @@ namespace StorageApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct()
         {
-            return await _context.Product.ToListAsync();
+            var res = _context.Product.Select((p) => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                Count = p.Count,
+            });
+
+            return Ok(await res.ToListAsync());
         }
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductDto>> GetProduct(int id)
         {
             var product = await _context.Product.FindAsync(id);
 
@@ -39,20 +48,38 @@ namespace StorageApi.Controllers
                 return NotFound();
             }
 
-            return product;
+            var productDto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                Count = product.Count
+            };
+
+            return productDto;
         }
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int id, CreateProductDto productDto)
         {
-            if (id != product.Id)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var product = await _context.Product.FindAsync(id);
+
+            if (product == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            product.Name = productDto.Name;
+            product.Price = productDto.Price;
+            product.Category = productDto.Category;
+            product.Shelf = productDto.Shelf;
+            product.Count = productDto.Count;
+            product.Description = productDto.Description;
 
             try
             {
@@ -76,8 +103,18 @@ namespace StorageApi.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct(CreateProductDto productDto)
         {
+            var product = new Product
+            {
+                Name = productDto.Name,
+                Price = productDto.Price,
+                Category = productDto.Category,
+                Shelf = productDto.Shelf,
+                Count = productDto.Count,
+                Description = productDto.Description
+            };
+
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
 
