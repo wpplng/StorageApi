@@ -24,6 +24,12 @@ namespace StorageApi
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/openapi/v1.json", "Storage API V1");
+                    options.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+                });
             }
 
             app.UseHttpsRedirection();
