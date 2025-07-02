@@ -59,6 +59,33 @@ namespace StorageApi.Controllers
             return Ok(product);
         }
 
+        // GET: api/Products/stats
+        [HttpGet("stats")]
+        public async Task<ActionResult<ProductStatsDto>> GetProductStats()
+        {
+            var products = await _context.Product.ToListAsync();
+
+            if (products.Count == 0)
+            {
+                return Ok(new ProductStatsDto
+                {
+                    TotalCount = 0,
+                    TotalInventoryValue = 0,
+                    AveragePrice = 0
+                });
+            }
+
+            var stats = new ProductStatsDto
+            {
+                TotalCount = products.Count,
+                TotalInventoryValue = products.Sum(p => p.Price * p.Count),
+                AveragePrice = Math.Round(products.Average(p => p.Price), 2) // Rounding to 2 decimal
+            };
+
+            return Ok(stats);
+        }
+
+
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         // Ev skapa en update DTO
