@@ -23,10 +23,18 @@ namespace StorageApi.Controllers
         }
 
         // GET: api/Products
+        // GET: api/Products?category=categoryName
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProduct([FromQuery] string? category)
         {
-            var products = await _context.Product
+            var query = _context.Product.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(p => p.Category == category);
+            }
+
+            var products = await query
                 .Select(p => new ProductDto
                 {
                     Id = p.Id,
@@ -84,7 +92,6 @@ namespace StorageApi.Controllers
 
             return Ok(stats);
         }
-
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
